@@ -1,0 +1,1199 @@
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>$CLAPCAT - The Clapping Smiling Cat | Pump.fun</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              purple: '#8b5cf6',
+              violet: '#6366f1',
+              neon: '#a855f7',
+              pink: '#ec4899',
+              gold: '#f59e0b',
+              dark: '#0b0b14',
+              card: '#161626'
+            }
+          },
+          fontFamily: {
+            comic: ['"Fredoka"', 'sans-serif'],
+            sans: ['"Space Grotesk"', 'sans-serif'],
+          },
+          animation: {
+            'bounce-fast': 'bounce 0.6s infinite',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            'clap-wiggle': 'clapWiggle 0.4s ease-in-out infinite alternate',
+            'float': 'float 3s ease-in-out infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(168, 85, 247, 0.6))' },
+              '50%': { filter: 'drop-shadow(0 0 35px rgba(236, 72, 153, 0.9))' },
+            },
+            clapWiggle: {
+              '0%': { transform: 'scale(1) rotate(-3deg)' },
+              '100%': { transform: 'scale(1.05) rotate(3deg)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&family=Space+Grotesk:wght@400;600;700;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      background-color: #080711;
+      color: #f3f4f6;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-meme {
+      font-family: 'Fredoka', sans-serif;
+    }
+    .neon-border {
+      box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.5), inset 0 0 15px -3px rgba(168, 85, 247, 0.2);
+    }
+    .neon-text {
+      text-shadow: 0 0 15px rgba(217, 70, 239, 0.7), 0 0 30px rgba(147, 51, 234, 0.5);
+    }
+    .clap-particle {
+      position: absolute;
+      pointer-events: none;
+      animation: floatUp 1.2s forwards ease-out;
+      font-weight: 800;
+      user-select: none;
+      z-index: 50;
+    }
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.8) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-120px) scale(1.6) rotate(20deg);
+      }
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080711;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4c1d95;
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7c3aed;
+    }
+  </style>
+</head>
+<body class="selection:bg-purple-500 selection:text-white relative">
+
+  <!-- Floating Ambient Glows -->
+  <div class="fixed top-10 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[130px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-10 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[160px] pointer-events-none -z-10"></div>
+
+  <!-- Audio Toggle Bar / Sound Status -->
+  <div id="soundToast" class="fixed top-20 right-5 z-50 bg-zinc-900/90 border border-purple-500/50 backdrop-blur-md px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 shadow-2xl transition-all duration-300">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+    <span id="soundStatusText"><i class="fa-solid fa-volume-high text-purple-400 mr-1"></i> Sound FX: ON</span>
+    <button onclick="toggleSound()" class="ml-2 underline text-purple-300 hover:text-white">Toggle</button>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-[#0c0b1a]/80 backdrop-blur-xl border-b border-purple-500/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400 shadow-lg group-hover:scale-110 transition-transform">
+          <img src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" alt="Clap Cat Logo" class="w-full h-full object-cover" />
+        </div>
+        <div>
+          <span class="font-meme text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">$CLAP</span>
+          <span class="block text-[10px] tracking-widest text-purple-300 font-bold uppercase -mt-1">Clapping Cat</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-8 font-semibold text-sm text-zinc-300">
+        <a href="#about" class="hover:text-purple-400 transition-colors">About</a>
+        <a href="#clapper" class="hover:text-purple-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-hands-clapping text-pink-400"></i> Clap Game</a>
+        <a href="#tokenomics" class="hover:text-purple-400 transition-colors">Tokenomics</a>
+        <a href="#howtobuy" class="hover:text-purple-400 transition-colors">How To Buy</a>
+        <a href="#roadmap" class="hover:text-purple-400 transition-colors">Roadmap</a>
+        <a href="#memes" class="hover:text-purple-400 transition-colors">Memes</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        <a href="https://pump.fun" target="_blank" class="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-meme text-lg font-bold px-5 py-2 rounded-xl shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 transition-all">
+          <i class="fa-solid fa-rocket"></i> BUY $CLAP
+        </a>
+        <button onclick="toggleMobileNav()" class="md:hidden text-zinc-300 hover:text-white p-2 text-xl focus:outline-none">
+          <i id="mobileMenuIcon" class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Drawer -->
+    <div id="mobileMenu" class="hidden md:hidden bg-[#0e0d1f] border-b border-purple-500/20 px-6 py-5 space-y-4">
+      <a href="#about" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">About</a>
+      <a href="#clapper" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">Clap-o-Meter</a>
+      <a href="#tokenomics" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">Tokenomics</a>
+      <a href="#howtobuy" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">How To Buy</a>
+      <a href="#roadmap" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">Roadmap</a>
+      <a href="#memes" onclick="toggleMobileNav()" class="block text-zinc-300 hover:text-purple-400 font-semibold text-lg">Meme Gallery</a>
+      <a href="https://pump.fun" target="_blank" class="w-full text-center block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-meme font-bold py-3 rounded-xl">
+        BUY ON PUMP.FUN
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 md:pt-40 md:pb-28 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Top Badges -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+        <div class="inline-flex items-center gap-2 bg-purple-900/60 border border-purple-500/40 text-purple-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wide backdrop-blur-md shadow-inner">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          LIVE ON SOLANA PUMP.FUN
+        </div>
+        <div class="inline-flex items-center gap-2 bg-pink-900/40 border border-pink-500/40 text-pink-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold backdrop-blur-md">
+          <i class="fa-solid fa-fire text-amber-400"></i> 100% COMMUNITY OWNED
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left Column: Copy & Actions -->
+        <div class="lg:col-span-7 text-center lg:text-left space-y-6">
+          <h1 class="font-meme text-4xl sm:text-6xl xl:text-7xl font-extrabold leading-[1.08] tracking-tight">
+            HE SMILES.<br/>
+            HE CLAPS.<br/>
+            <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">WE PUMP TO THE MOON!</span> 👏😼
+          </h1>
+
+          <p class="text-zinc-300 text-base sm:text-xl max-w-2xl mx-auto lg:mx-0 font-normal leading-relaxed">
+            The world’s most polite, enthusiastic feline with human teeth clapping non-stop for your green candles. Join the loudest standing ovation in crypto history!
+          </p>
+
+          <!-- Contract Address Box -->
+          <div class="bg-zinc-900/90 border-2 border-purple-500/50 rounded-2xl p-4 shadow-xl backdrop-blur-md max-w-xl mx-auto lg:mx-0">
+            <div class="flex items-center justify-between text-xs font-semibold text-purple-300 mb-1.5">
+              <span><i class="fa-solid fa-shield-cat mr-1 text-pink-400"></i> OFFICIAL CONTRACT ADDRESS (SOLANA):</span>
+              <span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> VERIFIED</span>
+            </div>
+            <div class="flex items-center justify-between bg-black/60 rounded-xl px-3 py-2.5 border border-zinc-800 gap-2">
+              <code id="caText" class="text-xs sm:text-sm text-amber-300 font-mono font-bold truncate">
+                F9WwgmJMUMpcDzxeCZvem81aSgxTUZnZkg67PKUipump
+              </code>
+              <button onclick="copyCA()" id="copyBtn" class="flex-shrink-0 bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-meme font-bold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 active:scale-95 shadow-md">
+                <i class="fa-regular fa-copy"></i>
+                <span id="copyLabel">COPY CA</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+            <a href="https://pump.fun" target="_blank" class="w-full sm:w-auto text-center px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-meme text-xl font-extrabold shadow-lg shadow-purple-600/40 hover:scale-105 active:scale-95 transition-all">
+              <i class="fa-solid fa-bolt mr-2"></i> BUY ON PUMP.FUN
+            </a>
+            <a href="#clapper" class="w-full sm:w-auto text-center px-7 py-4 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border-2 border-purple-500/60 text-purple-300 hover:text-white font-meme text-xl font-bold transition-all hover:scale-105 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-hands-clapping text-pink-400 animate-bounce"></i> PLAY CLAP-O-METER
+            </a>
+          </div>
+
+          <!-- Social Quick Links -->
+          <div class="flex items-center justify-center lg:justify-start gap-4 pt-4 text-zinc-400 text-sm">
+            <span>Join the Pack:</span>
+            <a href="https://t.me" target="_blank" class="w-10 h-10 rounded-full bg-zinc-900 border border-purple-500/30 flex items-center justify-center hover:bg-purple-600 hover:text-white hover:border-purple-400 transition-all text-base"><i class="fa-brands fa-telegram"></i></a>
+            <a href="https://x.com" target="_blank" class="w-10 h-10 rounded-full bg-zinc-900 border border-purple-500/30 flex items-center justify-center hover:bg-purple-600 hover:text-white hover:border-purple-400 transition-all text-base"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://dexscreener.com" target="_blank" class="w-10 h-10 rounded-full bg-zinc-900 border border-purple-500/30 flex items-center justify-center hover:bg-purple-600 hover:text-white hover:border-purple-400 transition-all text-base font-bold text-xs">DEX</a>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Hero Cat Card -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="relative w-full max-w-md group">
+            
+            <!-- Animated decorative aura -->
+            <div class="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-400 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
+
+            <div class="relative bg-zinc-900/95 border-2 border-purple-400/80 rounded-3xl p-6 shadow-2xl backdrop-blur-2xl text-center">
+              
+              <!-- Tag -->
+              <div class="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 rounded-full text-xs font-bold mb-4 font-meme">
+                <i class="fa-solid fa-paw text-pink-400"></i> TAP CAT TO MAKE HIM CLAP!
+              </div>
+
+              <!-- Interactive Cat Image Container -->
+              <div id="catHeroClickArea" onclick="handleCatClap(event)" class="relative cursor-pointer select-none overflow-hidden rounded-2xl bg-gradient-to-b from-purple-950/40 to-black/80 border border-purple-500/40 p-2 transform active:scale-95 transition-all">
+                
+                <img id="catHeroImg" 
+                     src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" 
+                     alt="Smiling Clapping Meme Cat" 
+                     class="w-full h-80 object-contain mx-auto rounded-xl filter drop-shadow-2xl transition-transform duration-100 animate-float" />
+                
+                <!-- Floating overlays -->
+                <div class="absolute bottom-3 left-3 right-3 bg-black/75 backdrop-blur-md rounded-xl p-2 border border-purple-500/30 flex items-center justify-between">
+                  <div class="text-left">
+                    <span class="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">Happiness Level</span>
+                    <span class="text-sm font-meme font-black text-amber-300"><i class="fa-solid fa-face-laugh-beam text-pink-400 mr-1"></i> OVER 9000%</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">Claps Given</span>
+                    <span id="heroClapDisplay" class="text-base font-meme font-black text-emerald-400">0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interactive Bottom Bar -->
+              <div class="mt-4 flex items-center justify-between gap-3">
+                <button onclick="handleCatClap(event)" class="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-meme font-bold py-3 px-4 rounded-xl shadow-md text-base sm:text-lg active:scale-95 transition flex items-center justify-center gap-2">
+                  <span>👏 CLAP!</span>
+                </button>
+                <button onclick="triggerSuperClap()" class="bg-amber-500 hover:bg-amber-400 text-black font-meme font-extrabold py-3 px-4 rounded-xl shadow-md text-sm active:scale-95 transition flex items-center gap-1.5" title="Mega Applause!">
+                  <i class="fa-solid fa-sparkles"></i> MEGA CLAP
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Stats Marquee / Ticker -->
+  <div class="bg-gradient-to-r from-purple-900/60 via-pink-900/50 to-purple-900/60 border-y border-purple-500/30 py-3.5 overflow-hidden backdrop-blur-md">
+    <div class="flex items-center gap-10 whitespace-nowrap animate-marquee font-meme text-sm sm:text-base font-bold text-purple-200 tracking-wider">
+      <span>🐱 $CLAP IS CLAPPING TO 100M MCAP</span>
+      <span>•</span>
+      <span class="text-amber-300">🔥 100% LP BURNED</span>
+      <span>•</span>
+      <span>🚀 0% BUY / 0% SELL TAX</span>
+      <span>•</span>
+      <span class="text-pink-300">👏 1,000,000,000 TOTAL SUPPLY</span>
+      <span>•</span>
+      <span class="text-emerald-400">💎 MINT REVOKED ON SOLANA</span>
+      <span>•</span>
+      <span>😼 SMILE EVERY DAY WITH $CLAP</span>
+      <span>•</span>
+      <span>🐱 $CLAP IS CLAPPING TO 100M MCAP</span>
+      <span>•</span>
+      <span class="text-amber-300">🔥 100% LP BURNED</span>
+      <span>•</span>
+      <span>🚀 0% BUY / 0% SELL TAX</span>
+      <span>•</span>
+      <span class="text-pink-300">👏 1,000,000,000 TOTAL SUPPLY</span>
+    </div>
+  </div>
+
+  <style>
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+      display: inline-flex;
+      animation: marquee 25s linear infinite;
+    }
+  </style>
+
+  <!-- About Section -->
+  <section id="about" class="py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="font-meme text-3xl sm:text-5xl font-black mb-4">
+          WHY IS THE CAT <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">CLAPPING?</span>
+        </h2>
+        <p class="text-zinc-300 text-lg">
+          Because he bought Solana under $10 and he just witnessed your wallet 100x. The legendary smiling clapper is here to cheer on every green candle in DeFi!
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Card 1 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#100f21] border-2 border-purple-500/30 hover:border-purple-400 rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-600/20 group">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-purple-600/20 border border-purple-400/40 flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">
+            😁
+          </div>
+          <h3 class="font-meme text-2xl font-bold mb-3 text-white">Unstoppable Smile</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Equipped with pristine teeth and unmatched optimism, this cat does not fear dips. Dips are just discounts for clapping harder.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#100f21] border-2 border-pink-500/30 hover:border-pink-400 rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-pink-600/20 group">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-pink-600/20 border border-pink-400/40 flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">
+            👏
+          </div>
+          <h3 class="font-meme text-2xl font-bold mb-3 text-white">Non-stop Applause</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Tired of quiet boring coins? $CLAP delivers a standing ovation 24/7 across Telegram, Twitter, and DexScreener charts.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#100f21] border-2 border-amber-500/30 hover:border-amber-400 rounded-3xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-amber-600/20 group">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-amber-600/20 border border-amber-400/40 flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">
+            🚀
+          </div>
+          <h3 class="font-meme text-2xl font-bold mb-3 text-white">Pump.fun Native</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Launched fair and clean on Pump.fun with instant bonding curve migration, zero team allocation, and 100% community empowerment.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Game Section: Clap-o-Meter -->
+  <section id="clapper" class="py-20 bg-[#0e0d1f] relative border-y border-purple-500/20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      
+      <div class="inline-block bg-pink-600/20 border border-pink-500 text-pink-300 font-meme px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+        🎮 MINI-GAME & COMMUNITY CLAPPER
+      </div>
+      
+      <h2 class="font-meme text-3xl sm:text-5xl font-black mb-4">
+        THE GLOBAL <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">CLAP-O-METER</span>
+      </h2>
+      <p class="text-zinc-300 max-w-2xl mx-auto mb-10 text-base sm:text-lg">
+        Spam click or tap the clapping cat to boost the global applause counter, trigger combos, and unlock celebratory rewards!
+      </p>
+
+      <!-- Game Stage Card -->
+      <div class="bg-zinc-950/80 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden max-w-3xl mx-auto">
+        
+        <!-- Scoreboard Header -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8 bg-zinc-900/80 p-4 rounded-2xl border border-zinc-800">
+          <div>
+            <span class="text-xs text-zinc-400 font-semibold uppercase block">Your Claps</span>
+            <span id="userClaps" class="font-meme text-2xl sm:text-3xl font-black text-amber-300">0</span>
+          </div>
+          <div>
+            <span class="text-xs text-zinc-400 font-semibold uppercase block">Current Combo</span>
+            <span id="comboMultiplier" class="font-meme text-2xl sm:text-3xl font-black text-pink-400">1x</span>
+          </div>
+          <div class="col-span-2 sm:col-span-1">
+            <span class="text-xs text-zinc-400 font-semibold uppercase block">Clap Rank</span>
+            <span id="clapperRank" class="font-meme text-base sm:text-xl font-bold text-purple-300">Baby Kitten 🐾</span>
+          </div>
+        </div>
+
+        <!-- Big Clickable Clapper Entity -->
+        <div class="relative py-4 flex flex-col items-center justify-center">
+          <div id="gameClickBox" onclick="handleGameClap(event)" class="cursor-pointer select-none transition-transform duration-75 active:scale-90 inline-block p-4 rounded-full relative">
+            
+            <div class="w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden border-4 border-purple-400 shadow-[0_0_50px_rgba(168,85,247,0.4)] relative bg-[#151428] flex items-center justify-center group">
+              <img id="gameCatImg" 
+                   src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" 
+                   alt="Click to Clap" 
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            </div>
+
+            <!-- Tap Indicator Overlay -->
+            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-meme text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full shadow-lg border border-purple-300 whitespace-nowrap">
+              👏 CLICK TO CLAP!
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar towards Next Milestone -->
+        <div class="mt-8 text-left">
+          <div class="flex justify-between text-xs font-bold text-zinc-300 mb-2">
+            <span id="levelLabel">Next Title: Professional Clapper (50 Claps)</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="w-full h-3.5 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400 w-0 transition-all duration-200"></div>
+          </div>
+        </div>
+
+        <!-- Fun Audio/Clap Controls -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button onclick="triggerPartyMode()" class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white text-xs sm:text-sm font-meme font-bold px-5 py-2.5 rounded-xl transition active:scale-95 shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-champagne-glasses"></i> APPLAUSE PARTY (CONFETTI)
+          </button>
+          <button onclick="resetGameClaps()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+            Reset Counter
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Swap Widget & Dex Simulator -->
+  <section class="py-20 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left: Swap / Calculator Card -->
+        <div class="lg:col-span-6">
+          <div class="bg-zinc-900/90 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                <h3 class="font-meme text-2xl font-bold text-white">Instant Swap</h3>
+              </div>
+              <span class="bg-purple-900/50 text-purple-300 text-xs font-bold px-3 py-1 rounded-lg border border-purple-500/30">
+                Pump / Raydium Router
+              </span>
+            </div>
+
+            <!-- Input SOL -->
+            <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 mb-3">
+              <div class="flex justify-between text-xs text-zinc-400 font-semibold mb-1">
+                <span>You Pay</span>
+                <span>Balance: <span class="text-white font-mono">12.45 SOL</span></span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <input id="solInput" type="number" value="1.0" min="0.01" step="0.1" oninput="calculateSwap()" class="bg-transparent text-2xl sm:text-3xl font-mono font-bold text-white focus:outline-none w-full" placeholder="0.0" />
+                <div class="flex items-center gap-2 bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-700 flex-shrink-0">
+                  <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-emerald-400 flex items-center justify-center text-[10px] font-bold">◎</div>
+                  <span class="font-bold text-sm">SOL</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Swap Switch Icon -->
+            <div class="flex justify-center -my-2 relative z-10">
+              <div class="w-9 h-9 rounded-full bg-purple-600 border-4 border-zinc-900 flex items-center justify-center text-white text-xs shadow-md">
+                <i class="fa-solid fa-arrow-down"></i>
+              </div>
+            </div>
+
+            <!-- Output $CLAP -->
+            <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 mb-6 mt-1">
+              <div class="flex justify-between text-xs text-zinc-400 font-semibold mb-1">
+                <span>You Receive (Estimated)</span>
+                <span class="text-purple-400 font-bold">1 SOL ≈ 7,420,000 $CLAP</span>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <input id="clapOutput" type="text" value="7,420,000" readonly class="bg-transparent text-2xl sm:text-3xl font-mono font-bold text-amber-300 focus:outline-none w-full cursor-default" />
+                <div class="flex items-center gap-2 bg-purple-900/60 px-3 py-1.5 rounded-xl border border-purple-500/40 flex-shrink-0">
+                  <img src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" class="w-6 h-6 rounded-full object-cover" alt="Clap" />
+                  <span class="font-meme font-bold text-sm text-purple-200">$CLAP</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Swap Details -->
+            <div class="space-y-2 text-xs text-zinc-400 mb-6 px-1">
+              <div class="flex justify-between">
+                <span>Slippage Tolerance</span>
+                <span class="text-zinc-200 font-bold">Auto (0.5%)</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Estimated Network Fee</span>
+                <span class="text-zinc-200 font-mono font-bold">&lt; $0.001 (Solana)</span>
+              </div>
+            </div>
+
+            <!-- Swap Button -->
+            <button onclick="handleSimulatedSwap()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-meme text-xl font-black shadow-lg shadow-purple-600/30 active:scale-95 transition-all">
+              <i class="fa-solid fa-wallet mr-2"></i> SWAP SOL FOR $CLAP
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Live Chart Visualizer & Market Highlights -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="bg-zinc-900/90 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-meme text-2xl font-bold text-white">$CLAP / SOL Market</h4>
+                <p class="text-xs text-zinc-400">Live pair on Pump.fun & Raydium</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-mono font-black text-emerald-400">+420.69%</span>
+                <span class="block text-[10px] text-zinc-400 uppercase">24H Performance</span>
+              </div>
+            </div>
+
+            <!-- Mock Candlestick Chart UI -->
+            <div class="h-48 w-full bg-zinc-950 rounded-2xl p-4 border border-zinc-800 flex items-end justify-between gap-1.5 sm:gap-2">
+              <div class="w-full bg-emerald-500/30 rounded-t h-[30%] hover:bg-emerald-400 transition relative group">
+                <div class="hidden group-hover:block absolute -top-7 left-1/2 -translate-x-1/2 bg-black text-[10px] text-emerald-400 px-1.5 py-0.5 rounded font-mono font-bold">0.00012</div>
+              </div>
+              <div class="w-full bg-emerald-500/40 rounded-t h-[45%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-rose-500/30 rounded-t h-[35%] hover:bg-rose-400 transition"></div>
+              <div class="w-full bg-emerald-500/50 rounded-t h-[60%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-emerald-500/60 rounded-t h-[55%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-emerald-500/70 rounded-t h-[75%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-emerald-500/80 rounded-t h-[70%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-emerald-500/90 rounded-t h-[88%] hover:bg-emerald-400 transition"></div>
+              <div class="w-full bg-emerald-400 rounded-t h-[100%] shadow-[0_0_15px_rgba(52,211,153,0.6)] animate-pulse"></div>
+            </div>
+
+            <!-- Quick Chart Action Links -->
+            <div class="grid grid-cols-2 gap-3 mt-4">
+              <a href="https://dexscreener.com" target="_blank" class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-xl text-sm font-bold transition">
+                <i class="fa-solid fa-chart-line text-purple-400"></i> DexScreener Chart
+              </a>
+              <a href="https://dextools.io" target="_blank" class="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-xl text-sm font-bold transition">
+                <i class="fa-solid fa-magnifying-glass-chart text-pink-400"></i> DEXTools Live
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Tokenomics Section -->
+  <section id="tokenomics" class="py-24 bg-[#0a0918] relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-purple-400 font-mono font-bold uppercase tracking-widest text-sm">Clap-Nomics</span>
+        <h2 class="font-meme text-3xl sm:text-5xl font-black mt-2 mb-4">
+          TOKENOMICS BUILT FOR <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-purple-400">APES & CLAPPERS</span>
+        </h2>
+        <p class="text-zinc-400 text-base sm:text-lg">
+          Zero bullshit. Zero rugs. Just pure meme feline power fueled by the Solana high-speed blockchain.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Supply -->
+        <div class="bg-zinc-900/90 border-2 border-purple-500/30 rounded-3xl p-6 text-center hover:border-purple-400 transition-all hover:scale-105">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+          <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Total Supply</span>
+          <span class="font-meme text-2xl sm:text-3xl font-black text-white mt-1 block">1,000,000,000</span>
+          <span class="text-purple-400 text-xs font-semibold mt-1 block">1B Fixed $CLAP</span>
+        </div>
+
+        <!-- Tax -->
+        <div class="bg-zinc-900/90 border-2 border-pink-500/30 rounded-3xl p-6 text-center hover:border-pink-400 transition-all hover:scale-105">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+          <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Buy / Sell Tax</span>
+          <span class="font-meme text-3xl sm:text-4xl font-black text-white mt-1 block">0% / 0%</span>
+          <span class="text-pink-400 text-xs font-semibold mt-1 block">Zero Fees Forever</span>
+        </div>
+
+        <!-- LP -->
+        <div class="bg-zinc-900/90 border-2 border-amber-500/30 rounded-3xl p-6 text-center hover:border-amber-400 transition-all hover:scale-105">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-fire-flame-curved"></i>
+          </div>
+          <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Liquidity Pool</span>
+          <span class="font-meme text-3xl sm:text-4xl font-black text-white mt-1 block">100% BURNED</span>
+          <span class="text-amber-400 text-xs font-semibold mt-1 block">LP Tokens Incinerated</span>
+        </div>
+
+        <!-- Ownership -->
+        <div class="bg-zinc-900/90 border-2 border-emerald-500/30 rounded-3xl p-6 text-center hover:border-emerald-400 transition-all hover:scale-105">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-lock-open"></i>
+          </div>
+          <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Mint Authority</span>
+          <span class="font-meme text-3xl sm:text-4xl font-black text-white mt-1 block">REVOKED</span>
+          <span class="text-emerald-400 text-xs font-semibold mt-1 block">Immutable Contract</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How to Buy Section -->
+  <section id="howtobuy" class="py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="font-meme text-3xl sm:text-5xl font-black mb-4">
+          HOW TO BUY <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">$CLAP</span>
+        </h2>
+        <p class="text-zinc-300 text-base sm:text-lg">
+          Follow these 4 simple steps to join the clapping army.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Step 1 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#0f0e1f] border-2 border-purple-500/30 rounded-3xl p-6 relative">
+          <div class="font-meme text-4xl font-black text-purple-400/40 mb-2">01</div>
+          <h3 class="font-meme text-xl font-bold text-white mb-2">Create a Wallet</h3>
+          <p class="text-zinc-400 text-sm">
+            Download <strong>Phantom</strong> or <strong>Solflare</strong> wallet app or browser extension from official sources.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#0f0e1f] border-2 border-pink-500/30 rounded-3xl p-6 relative">
+          <div class="font-meme text-4xl font-black text-pink-400/40 mb-2">02</div>
+          <h3 class="font-meme text-xl font-bold text-white mb-2">Get Some SOL</h3>
+          <p class="text-zinc-400 text-sm">
+            Purchase Solana ($SOL) from Coinbase, Binance, or Kraken and transfer it to your personal wallet address.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#0f0e1f] border-2 border-amber-500/30 rounded-3xl p-6 relative">
+          <div class="font-meme text-4xl font-black text-amber-400/40 mb-2">03</div>
+          <h3 class="font-meme text-xl font-bold text-white mb-2">Go to Pump.fun</h3>
+          <p class="text-zinc-400 text-sm">
+            Open pump.fun (or Raydium/Jupiter) and paste the official contract address:
+            <span class="block text-xs font-mono text-amber-300 mt-1 truncate">F9WwgmJMUMpcDzxeCZvem81aSgxTUZnZkg67PKUipump</span>
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-gradient-to-b from-[#18172e] to-[#0f0e1f] border-2 border-emerald-500/30 rounded-3xl p-6 relative">
+          <div class="font-meme text-4xl font-black text-emerald-400/40 mb-2">04</div>
+          <h3 class="font-meme text-xl font-bold text-white mb-2">Swap & Clap</h3>
+          <p class="text-zinc-400 text-sm">
+            Swap SOL for $CLAP. Set slippage to auto and prepare for the loudest standing ovation of your life! 👏🚀
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap / Clap-Map -->
+  <section id="roadmap" class="py-24 bg-[#0e0d1f] relative border-t border-purple-500/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-pink-400 font-mono font-bold uppercase tracking-widest text-sm">The Master Plan</span>
+        <h2 class="font-meme text-3xl sm:text-5xl font-black mt-2 mb-4">
+          THE OFFICIAL <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">CLAP-MAP</span>
+        </h2>
+        <p class="text-zinc-400 text-base sm:text-lg">
+          Our journey from a smiling meme to global feline financial dominance.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Phase 1 -->
+        <div class="bg-zinc-900/90 border-2 border-purple-500/40 rounded-3xl p-8 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-purple-600 text-white font-meme text-xs font-bold px-4 py-1.5 rounded-bl-2xl">
+            PHASE 1
+          </div>
+          <h3 class="font-meme text-2xl font-bold text-purple-300 mb-4 flex items-center gap-2">
+            <span>🐾 The Gentle Clap</span>
+          </h3>
+          <ul class="space-y-3 text-sm text-zinc-300">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-400"></i> Fair launch on Pump.fun</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-400"></i> Viral meme raids across CT & TikTok</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-400"></i> Raydium bonding curve breakout</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-emerald-400"></i> First 1,000 Diamond Clappers</li>
+          </ul>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="bg-zinc-900/90 border-2 border-pink-500/40 rounded-3xl p-8 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-pink-600 text-white font-meme text-xs font-bold px-4 py-1.5 rounded-bl-2xl">
+            PHASE 2
+          </div>
+          <h3 class="font-meme text-2xl font-bold text-pink-300 mb-4 flex items-center gap-2">
+            <span>👏 The Applause</span>
+          </h3>
+          <ul class="space-y-3 text-sm text-zinc-300">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin text-amber-400"></i> CoinGecko & CoinMarketCap Listing</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin text-amber-400"></i> DexScreener & DEXTools trending #1</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> First tier-2 CEX listings</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> Clap Meme soundboard Telegram bot</li>
+          </ul>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="bg-zinc-900/90 border-2 border-amber-500/40 rounded-3xl p-8 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-amber-500 text-black font-meme text-xs font-extrabold px-4 py-1.5 rounded-bl-2xl">
+            PHASE 3
+          </div>
+          <h3 class="font-meme text-2xl font-bold text-amber-300 mb-4 flex items-center gap-2">
+            <span>🎉 Standing Ovation</span>
+          </h3>
+          <ul class="space-y-3 text-sm text-zinc-300">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> Major Tier-1 CEX Listings</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> Real-life Cat shelter charity donations</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> $100M Market Cap standing ovation</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle text-zinc-600 text-[10px]"></i> World's most famous smiling cat</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Meme Gallery / Soundboard Section -->
+  <section id="memes" class="py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="font-meme text-3xl sm:text-5xl font-black mb-4">
+          MEME VAULT & <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">SOUNDBOARD</span>
+        </h2>
+        <p class="text-zinc-300 text-base sm:text-lg">
+          Click the sound effects below to hear the cat clap, meow, and cheer you into profit!
+        </p>
+      </div>
+
+      <!-- Soundboard Buttons -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-16">
+        <button onclick="playCustomSound('clap')" class="bg-purple-900/40 hover:bg-purple-800/60 border-2 border-purple-500/40 p-4 rounded-2xl text-center active:scale-95 transition flex flex-col items-center gap-2">
+          <span class="text-3xl">👏</span>
+          <span class="font-meme font-bold text-sm text-purple-200">Crisp Clap</span>
+        </button>
+        <button onclick="playCustomSound('doubleClap')" class="bg-pink-900/40 hover:bg-pink-800/60 border-2 border-pink-500/40 p-4 rounded-2xl text-center active:scale-95 transition flex flex-col items-center gap-2">
+          <span class="text-3xl">👏👏</span>
+          <span class="font-meme font-bold text-sm text-pink-200">Double Slap</span>
+        </button>
+        <button onclick="playCustomSound('pop')" class="bg-amber-900/40 hover:bg-amber-800/60 border-2 border-amber-500/40 p-4 rounded-2xl text-center active:scale-95 transition flex flex-col items-center gap-2">
+          <span class="text-3xl">😸</span>
+          <span class="font-meme font-bold text-sm text-amber-200">Happy Purr</span>
+        </button>
+        <button onclick="playCustomSound('hype')" class="bg-emerald-900/40 hover:bg-emerald-800/60 border-2 border-emerald-500/40 p-4 rounded-2xl text-center active:scale-95 transition flex flex-col items-center gap-2">
+          <span class="text-3xl">🚀</span>
+          <span class="font-meme font-bold text-sm text-emerald-200">Moon Clap</span>
+        </button>
+      </div>
+
+      <!-- Meme Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Meme 1 -->
+        <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-purple-500/30 group">
+          <div class="h-64 overflow-hidden relative">
+            <img src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" alt="Meme 1" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+              <span class="font-meme font-bold text-white text-lg">"When the candle turns green and you can't stop clapping"</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meme 2 -->
+        <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-pink-500/30 group">
+          <div class="h-64 overflow-hidden relative bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center p-6 text-center">
+            <div class="space-y-2">
+              <span class="text-5xl">😁👏</span>
+              <p class="font-meme font-black text-2xl text-amber-300">"HONEY, THE CAT IS CLAPPING AT THE DEXSCREENER AGAIN"</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meme 3 -->
+        <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-amber-500/30 group">
+          <div class="h-64 overflow-hidden relative">
+            <img src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" alt="Meme 3" class="w-full h-full object-cover filter saturate-150 contrast-125 group-hover:scale-110 transition duration-300" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+              <span class="font-meme font-bold text-amber-300 text-lg">"POV: You just bought the $CLAP bottom"</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner Section -->
+  <section class="py-20 relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative bg-gradient-to-r from-purple-900 via-pink-900 to-indigo-950 border-2 border-purple-400 rounded-3xl p-8 sm:p-14 text-center shadow-2xl overflow-hidden">
+        
+        <!-- Ambient elements inside banner -->
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10 max-w-2xl mx-auto space-y-6">
+          <h2 class="font-meme text-3xl sm:text-5xl font-black text-white leading-tight">
+            ARE YOU READY TO GIVE CRYPTO A STANDING OVATION?
+          </h2>
+          <p class="text-zinc-200 text-base sm:text-lg">
+            Join thousands of $CLAP holders smiling and clapping their way to financial freedom.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <a href="https://pump.fun" target="_blank" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 hover:from-amber-300 hover:to-purple-500 text-black font-meme text-xl font-black shadow-xl hover:scale-105 active:scale-95 transition">
+              <i class="fa-solid fa-rocket mr-1 text-purple-950"></i> BUY ON PUMP.FUN NOW
+            </a>
+            <a href="https://t.me" target="_blank" class="px-7 py-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-purple-400 text-purple-200 font-meme text-xl font-bold transition hover:scale-105 flex items-center gap-2">
+              <i class="fa-brands fa-telegram text-pink-400"></i> JOIN TELEGRAM
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-[#06050e] border-t border-purple-500/20 pt-16 pb-12 text-zinc-400 text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-12 border-b border-zinc-800">
+        
+        <div class="flex items-center gap-3">
+          <img src="https://www.designarena.ai/u/a0c292d3-c729-4673-9307-0983fa51f914" class="w-10 h-10 rounded-full border border-purple-400 object-cover" alt="Clap Cat" />
+          <span class="font-meme text-2xl font-black text-white">$CLAP CAT</span>
+        </div>
+
+        <div class="flex items-center gap-6 font-semibold">
+          <a href="#about" class="hover:text-purple-400 transition">About</a>
+          <a href="#tokenomics" class="hover:text-purple-400 transition">Tokenomics</a>
+          <a href="#clapper" class="hover:text-purple-400 transition">Clap Game</a>
+          <a href="https://pump.fun" target="_blank" class="hover:text-purple-400 transition">Pump.fun</a>
+        </div>
+
+        <div class="flex items-center gap-4 text-lg">
+          <a href="https://x.com" target="_blank" class="hover:text-purple-400 transition"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="https://t.me" target="_blank" class="hover:text-purple-400 transition"><i class="fa-brands fa-telegram"></i></a>
+          <a href="https://dexscreener.com" target="_blank" class="hover:text-purple-400 transition font-bold text-xs">DEX</a>
+        </div>
+
+      </div>
+
+      <div class="pt-8 text-center text-xs text-zinc-500 space-y-3">
+        <p>
+          <strong>Disclaimer:</strong> $CLAP is a purely decentralized meme coin with no intrinsic utility, financial promise, or formal roadmap. It is created for humor, entertainment, and standing ovations. Cryptocurrencies are volatile. DYOR.
+        </p>
+        <p>© 2025 $CLAP (Clapping Cat) • Contract: F9WwgmJMUMpcDzxeCZvem81aSgxTUZnZkg67PKUipump</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Web Audio Synthesizer & Interactive Scripts -->
+  <script>
+    // State
+    let soundEnabled = true;
+    let clapCount = 0;
+    let heroClapCount = 0;
+    let combo = 1;
+    let comboTimer = null;
+    const contractAddress = "F9WwgmJMUMpcDzxeCZvem81aSgxTUZnZkg67PKUipump";
+
+    // Web Audio Context for synthesizer sounds
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Synthesize a crisp acoustic percussive clap sound
+    function playClapAudio(pitch = 1.0) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        // Noise buffer for snap/clap texture
+        const bufferSize = ctx.sampleRate * 0.15;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        // Filter
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1100 * pitch, now);
+        filter.Q.setValueAtTime(3.0, now);
+
+        // Envelope
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        noise.start(now);
+        noise.stop(now + 0.15);
+
+        // Sub tone for body
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180 * pitch, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+
+        oscGain.gain.setValueAtTime(0.4, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.09);
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const text = document.getElementById('soundStatusText');
+      if (soundEnabled) {
+        text.innerHTML = '<i class="fa-solid fa-volume-high text-purple-400 mr-1"></i> Sound FX: ON';
+        playClapAudio();
+      } else {
+        text.innerHTML = '<i class="fa-solid fa-volume-xmark text-zinc-500 mr-1"></i> Sound FX: OFF';
+      }
+    }
+
+    function playCustomSound(type) {
+      if (!soundEnabled) return;
+      if (type === 'clap') {
+        playClapAudio(1.0);
+      } else if (type === 'doubleClap') {
+        playClapAudio(1.0);
+        setTimeout(() => playClapAudio(1.2), 120);
+      } else if (type === 'pop') {
+        playClapAudio(1.6);
+        setTimeout(() => playClapAudio(2.0), 90);
+      } else if (type === 'hype') {
+        playClapAudio(0.8);
+        setTimeout(() => playClapAudio(1.1), 100);
+        setTimeout(() => playClapAudio(1.5), 200);
+      }
+    }
+
+    // Copy CA with Toast Effect
+    function copyCA() {
+      navigator.clipboard.writeText(contractAddress).then(() => {
+        const copyLabel = document.getElementById('copyLabel');
+        const originalText = copyLabel.innerText;
+        copyLabel.innerText = "COPIED! 👏";
+        playClapAudio(1.4);
+        
+        // Confetti burst
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#a855f7', '#ec4899', '#f59e0b']
+        });
+
+        setTimeout(() => {
+          copyLabel.innerText = originalText;
+        }, 2000);
+      });
+    }
+
+    // Hero Cat Clapping handler
+    function handleCatClap(e) {
+      heroClapCount++;
+      document.getElementById('heroClapDisplay').innerText = heroClapCount.toLocaleString();
+
+      const img = document.getElementById('catHeroImg');
+      img.classList.remove('animate-float');
+      img.style.transform = 'scale(1.15) rotate(' + (Math.random() > 0.5 ? '6deg' : '-6deg') + ')';
+      setTimeout(() => {
+        img.style.transform = 'scale(1) rotate(0deg)';
+        img.classList.add('animate-float');
+      }, 150);
+
+      playClapAudio(0.9 + Math.random() * 0.4);
+      spawnParticle(e, ['👏', '😼', '🔥', '✨', '+1'][Math.floor(Math.random() * 5)]);
+    }
+
+    // Mega Clap Button
+    function triggerSuperClap() {
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          heroClapCount += 10;
+          document.getElementById('heroClapDisplay').innerText = heroClapCount.toLocaleString();
+          playClapAudio(1.0 + (i * 0.1));
+        }, i * 70);
+      }
+      confetti({
+        particleCount: 80,
+        spread: 90,
+        origin: { y: 0.5 }
+      });
+    }
+
+    // Game Section Click Handler
+    function handleGameClap(e) {
+      clapCount++;
+      heroClapCount++;
+      document.getElementById('heroClapDisplay').innerText = heroClapCount.toLocaleString();
+      document.getElementById('userClaps').innerText = clapCount.toLocaleString();
+
+      // Combo System
+      combo++;
+      document.getElementById('comboMultiplier').innerText = combo + 'x';
+      clearTimeout(comboTimer);
+      comboTimer = setTimeout(() => {
+        combo = 1;
+        document.getElementById('comboMultiplier').innerText = '1x';
+      }, 2000);
+
+      // Rank & Progress
+      updateRankAndProgress();
+
+      // Animate Game Image
+      const catImg = document.getElementById('gameCatImg');
+      catImg.style.transform = 'scale(1.12) rotate(' + (Math.random() > 0.5 ? '8deg' : '-8deg') + ')';
+      setTimeout(() => {
+        catImg.style.transform = 'scale(1) rotate(0deg)';
+      }, 100);
+
+      playClapAudio(1.0 + Math.min(combo * 0.05, 1.0));
+      spawnParticle(e, ['👏', '😼', '🚀', '💎', '⭐'][Math.floor(Math.random() * 5)]);
+
+      if (clapCount % 50 === 0) {
+        confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    function updateRankAndProgress() {
+      let rank = "Baby Kitten 🐾";
+      let nextGoal = 50;
+      let label = "Next Title: Professional Clapper (50 Claps)";
+
+      if (clapCount >= 500) {
+        rank = "GOD OF APPLAUSE 👑👏";
+        nextGoal = 1000;
+        label = "MAX RANK REACHED! 🚀";
+      } else if (clapCount >= 200) {
+        rank = "Standing Ovation Master 🌟";
+        nextGoal = 500;
+        label = "Next Title: GOD OF APPLAUSE (500 Claps)";
+      } else if (clapCount >= 100) {
+        rank = "Diamond Paws 💎";
+        nextGoal = 200;
+        label = "Next Title: Standing Ovation Master (200 Claps)";
+      } else if (clapCount >= 50) {
+        rank = "Professional Clapper 👏";
+        nextGoal = 100;
+        label = "Next Title: Diamond Paws (100 Claps)";
+      }
+
+      document.getElementById('clapperRank').innerText = rank;
+      document.getElementById('levelLabel').innerText = label;
+
+      const pct = Math.min(100, Math.floor((clapCount / nextGoal) * 100));
+      document.getElementById('progressBar').style.width = pct + '%';
+      document.getElementById('progressPercent').innerText = pct + '%';
+    }
+
+    function resetGameClaps() {
+      clapCount = 0;
+      combo = 1;
+      document.getElementById('userClaps').innerText = '0';
+      document.getElementById('comboMultiplier').innerText = '1x';
+      updateRankAndProgress();
+    }
+
+    function triggerPartyMode() {
+      confetti({
+        particleCount: 150,
+        spread: 120,
+        origin: { y: 0.6 },
+        colors: ['#a855f7', '#ec4899', '#facc15', '#3b82f6', '#10b981']
+      });
+      playCustomSound('hype');
+    }
+
+    // Spawn floating particle near click
+    function spawnParticle(e, text) {
+      const particle = document.createElement('div');
+      particle.className = 'clap-particle text-2xl';
+      particle.innerText = text;
+
+      // Position logic
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX || (rect.left + rect.width / 2)) - 15 + (Math.random() * 40 - 20);
+      const y = (e.clientY || (rect.top + rect.height / 2)) - 20;
+
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+
+      document.body.appendChild(particle);
+
+      setTimeout(() => {
+        particle.remove();
+      }, 1200);
+    }
+
+    // Swap calculation logic
+    function calculateSwap() {
+      const sol = parseFloat(document.getElementById('solInput').value) || 0;
+      const rate = 7420000; // 1 SOL = 7.42M CLAP
+      const result = Math.floor(sol * rate);
+      document.getElementById('clapOutput').value = result.toLocaleString();
+    }
+
+    function handleSimulatedSwap() {
+      playClapAudio(1.3);
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.7 }
+      });
+      alert(`🎉 Ready to swap! Redirecting you to Solana Pump.fun pool for contract: ${contractAddress}`);
+      window.open('https://pump.fun', '_blank');
+    }
+
+    // Mobile Navigation Toggle
+    function toggleMobileNav() {
+      const menu = document.getElementById('mobileMenu');
+      const icon = document.getElementById('mobileMenuIcon');
+      menu.classList.toggle('hidden');
+      if (menu.classList.contains('hidden')) {
+        icon.className = 'fa-solid fa-bars';
+      } else {
+        icon.className = 'fa-solid fa-xmark';
+      }
+    }
+  </script>
+</body>
+</html>
